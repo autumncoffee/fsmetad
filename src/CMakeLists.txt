@@ -2,7 +2,16 @@ project(fsmetad)
 
 cmake_minimum_required(VERSION 3.10)
 
-set(AC_COMMON_CXX_FLAGS "-std=c++17")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(FSMETAD_EXTRA_CXX_FLAGS "-stdlib=libc++")
+    set(FSMETAD_EXTRA_LIBS "-lstdc++" "-lc++experimental")
+
+else()
+    set(FSMETAD_EXTRA_CXX_FLAGS "")
+    set(FSMETAD_EXTRA_LIBS "-lstdc++fs")
+endif()
+
+set(AC_COMMON_CXX_FLAGS "-std=c++17 ${FSMETAD_EXTRA_CXX_FLAGS}")
 set(AC_TCMALLOC_CXX_FLAGS "-fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
 set(AC_DEBUG_CXX_FLAGS "")
 set(AC_TCMALLOC_LIBS "-ltcmalloc")
@@ -46,6 +55,7 @@ target_link_libraries(
     ac_library_http
     ac_library_http_router
     ${AC_TCMALLOC_LIBS}
+    ${FSMETAD_EXTRA_LIBS}
 )
 
 install(TARGETS fsmetad RUNTIME DESTINATION bin)
