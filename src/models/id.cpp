@@ -1,6 +1,7 @@
 #include "id.hpp"
 #include <random>
 #include <time.h>
+#include <string.h>
 
 namespace NAC {
     std::string GenerateID(uint16_t attempt) {
