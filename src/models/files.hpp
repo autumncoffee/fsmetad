@@ -11,6 +11,8 @@ namespace NAC {
     AC_MODEL_FIELD(TFSMetaDBStringField, Name)
     AC_MODEL_FIELD(TFSMetaDBStringField, Path)
     AC_MODEL_FIELD(TFSMetaDBStringField, CType)
+    AC_MODEL_FIELD(TFSMetaDBUIntField, Size)
+    AC_MODEL_FIELD(TFSMetaDBUIntField, Offset)
     AC_MODEL_END()
 
     class TFilesModel : public TFSMetaDBModelDescr<TFilesKey, TFilesData> {

@@ -11,7 +11,7 @@ namespace NAC {
 
     public:
         virtual std::string Format() const;
-        virtual std::function<void*()> Load(void*, size_t, const void*) const;
+        virtual std::function<void*()> Load(void*) const;
         virtual size_t DumpedSize(void*, const void*) const;
         virtual void Dump(void*, const void*) const;
     };

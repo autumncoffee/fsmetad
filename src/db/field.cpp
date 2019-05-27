@@ -1,5 +1,6 @@
 #include "field.hpp"
 #include <wiredtiger.h>
+#include <stdio.h>
 
 namespace NAC {
     std::string TFSMetaDBFieldBase::Format() const {
@@ -14,20 +15,41 @@ namespace NAC {
         return std::string();
     }
 
-    std::function<void*()> TFSMetaDBFieldBase::Load(void* session, size_t size, const void* data) const {
+    std::function<void*()> TFSMetaDBFieldBase::Load(void* stream) const {
         if (const auto* ptr = dynamic_cast<const TFSMetaDBStringField*>(this)) {
-            return [val = std::string((const char*)data, size)](){
-                return (void*)&val;
-            };
+            const char* data;
+            int result = wiredtiger_unpack_str((WT_PACK_STREAM*)stream, &data);
+
+            if (result == 0) {
+                return [val = std::string(data)](){
+                    return (void*)&val;
+                };
+
+            } else {
+                dprintf(
+                    2,
+                    "Failed to unpack string: %s\n",
+                    wiredtiger_strerror(result)
+                );
+            }
         }
 
         if (const auto* ptr = dynamic_cast<const TFSMetaDBUIntField*>(this)) {
             uint64_t val;
-            wiredtiger_struct_unpack((WT_SESSION*)session, data, size, "Q", &val);
+            int result = wiredtiger_unpack_uint((WT_PACK_STREAM*)stream, &val);
 
-            return [val](){
-                return (void*)&val;
-            };
+            if (result == 0) {
+                return [val](){
+                    return (void*)&val;
+                };
+
+            } else {
+                dprintf(
+                    2,
+                    "Failed to unpack uint: %s\n",
+                    wiredtiger_strerror(result)
+                );
+            }
         }
 
         return std::function<void*()>();

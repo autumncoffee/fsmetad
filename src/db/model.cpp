@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 namespace NAC {
-    void TFSMetaDBModelBase::Load(void* session, size_t size, void* data) {
+    void TFSMetaDBModelBase::Load(void* session, size_t size, const void* data) {
         auto&& modelData = __GetACModelData();
         modelData.clear();
         WT_PACK_STREAM* stream;
@@ -19,24 +19,15 @@ namespace NAC {
         if (result != 0) {
             dprintf(
                 2,
-                "Failed to unpack: %s",
+                "Failed to unpack: %s\n",
                 wiredtiger_strerror(result)
             );
 
             return;
         }
 
-        WT_ITEM item;
-
         for (const auto& it : __GetACModelFields()) {
-            result = wiredtiger_unpack_item(stream, &item);
-
-            if (result == 0) {
-                modelData.emplace_back(it->Load(stream, item.size, item.data));
-
-            } else {
-                modelData.emplace_back(__TACModelData::value_type());
-            }
+            modelData.emplace_back(it->Load(stream));
         }
 
         {
@@ -74,7 +65,7 @@ namespace NAC {
         if (result != 0) {
             dprintf(
                 2,
-                "Failed to pack: %s",
+                "Failed to pack: %s\n",
                 wiredtiger_strerror(result)
             );
 

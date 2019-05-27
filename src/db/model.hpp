@@ -62,6 +62,10 @@ protected: \
 public: \
     cls() { \
         Init(); \
+    } \
+\
+    static const __TACModelFields& __GetACModelFieldsStatic() { \
+        return __ACModelFields; \
     }
 
 #define AC_MODEL_FIELD2(type, name, dbName) \
@@ -80,17 +84,17 @@ private: \
     static const size_t __ACModelFieldIndex ## name; \
 \
 public: \
-    const type& Get ## name() const { \
-        if (auto* ptr = (const type*)__ACModelGet(__ACModelFieldIndex ## name)) { \
+    const type::TValue& Get ## name() const { \
+        if (auto* ptr = (const type::TValue*)__ACModelGet(__ACModelFieldIndex ## name)) { \
             return *ptr; \
 \
         } else { \
-            static type dummy; \
+            static type::TValue dummy; \
             return dummy; \
         } \
     } \
 \
-    TSelf& Set ## name(const type& val) { \
+    TSelf& Set ## name(const type::TValue& val) { \
         __ACModelSet(__ACModelFieldIndex ## name, [val]() { \
             return (void*)&val; \
         }); \
@@ -128,15 +132,17 @@ public: \
     } \
 };
 
-#define AC_MODEL_IMPL(cls) \
+#define AC_MODEL_IMPL_START(cls) \
     __TACModelFieldMap cls::__ACModelFieldMap; \
-    __TACModelFields cls::__ACModelFields; \
+    __TACModelFields cls::__ACModelFields;
+
+#define AC_MODEL_IMPL_END(cls) \
     const std::string cls::__ACModelFullFormat = cls::__ACModelBuildFullFormat();
 
 namespace NAC {
     class TFSMetaDBModelBase {
     public:
-        void Load(void*, size_t, void*);
+        void Load(void*, size_t, const void*);
         TBlob Dump(void*) const;
 
     protected:

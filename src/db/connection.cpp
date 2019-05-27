@@ -21,7 +21,7 @@ namespace NAC {
             );
 
             if (result != 0) {
-                dprintf(2, "Error opening database: %s", wiredtiger_strerror(result));
+                dprintf(2, "Error opening database: %s\n", wiredtiger_strerror(result));
                 abort();
             }
 
@@ -31,7 +31,7 @@ namespace NAC {
                 if (result != 0) {
                     dprintf(
                         2,
-                        "Failed to close database: %s",
+                        "Failed to close database: %s\n",
                         wiredtiger_strerror(result)
                     );
 
@@ -52,7 +52,7 @@ namespace NAC {
             if (result != 0) {
                 dprintf(
                     2,
-                    "Failed to open session: %s",
+                    "Failed to open session: %s\n",
                     wiredtiger_strerror(result)
                 );
 
