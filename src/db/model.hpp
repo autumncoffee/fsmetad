@@ -32,7 +32,7 @@ private: \
 private: \
     static __TACModelFieldMap __ACModelFieldMap; \
     static __TACModelFields __ACModelFields; \
-    static __TACModelData __ACModelData; \
+    __TACModelData __ACModelData; \
 \
 protected: \
     const __TACModelFieldMap& __GetACModelFieldMap() const override { \
@@ -49,6 +49,19 @@ protected: \
 \
     const __TACModelData& __GetACModelData() const override { \
         return __ACModelData; \
+    } \
+\
+    void Init() { \
+        __ACModelData.reserve(__ACModelFields.size()); \
+\
+        for (const auto& it : __ACModelFields) { \
+            __ACModelData.emplace_back(__TACModelData::value_type()); \
+        } \
+    } \
+\
+public: \
+    cls() { \
+        Init(); \
     }
 
 #define AC_MODEL_FIELD2(type, name, dbName) \
@@ -60,7 +73,6 @@ private: \
 \
         __ACModelFields.emplace_back(std::move(ptr)); \
         __ACModelFieldMap.emplace(#name, index); \
-        __ACModelData.emplace_back(__TACModelData::value_type()); \
 \
         return index; \
     } \
@@ -69,9 +81,13 @@ private: \
 \
 public: \
     const type& Get ## name() const { \
-        auto* ptr = (const type*)__ACModelGet(__ACModelFieldIndex ## name); \
+        if (auto* ptr = (const type*)__ACModelGet(__ACModelFieldIndex ## name)) { \
+            return *ptr; \
 \
-        return (ptr ? *ptr : type()); \
+        } else { \
+            static type dummy; \
+            return dummy; \
+        } \
     } \
 \
     TSelf& Set ## name(const type& val) { \
@@ -115,7 +131,6 @@ public: \
 #define AC_MODEL_IMPL(cls) \
     __TACModelFieldMap cls::__ACModelFieldMap; \
     __TACModelFields cls::__ACModelFields; \
-    __TACModelData cls::__ACModelData; \
     const std::string cls::__ACModelFullFormat = cls::__ACModelBuildFullFormat();
 
 namespace NAC {
