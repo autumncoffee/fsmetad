@@ -32,11 +32,7 @@ namespace NAC {
 
     using TFileTagsIndexKey = TFileTagsData;
 
-    AC_MODEL_BEGIN(TFileTagsIndexData)
-    AC_MODEL_FIELD(TFSMetaDBStringField, File)
-    AC_MODEL_END()
-
-    class TFileTagsIndex : public TFSMetaDBIndexDescr<TFileTagsModel, TFileTagsIndexKey, TFileTagsIndexData> {
+    class TFileTagsIndex : public TFSMetaDBIndexDescr<TFileTagsModel, TFileTagsIndexKey> {
     public:
         static std::string DBName;
     };

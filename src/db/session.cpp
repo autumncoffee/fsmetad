@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory>
+#include <utility>
 
 namespace NAC {
     class TFSMetaDBSessionImpl {
@@ -53,12 +54,11 @@ namespace NAC {
         void CreateIndex(
             const std::string& tableName,
             const std::string& indexName,
-            const std::string& keyFieldNames,
-            const std::string& valueFieldNames
+            const std::string& keyFieldNames
         ) {
             int result = Session->create(
                 Session.get(),
-                ("index:" + tableName + ":" + indexName + "(" + valueFieldNames + ")").c_str(),
+                ("index:" + tableName + ":" + indexName).c_str(),
                 ("columns=(" + keyFieldNames + ")").c_str()
             );
 
@@ -224,7 +224,8 @@ namespace NAC {
             const std::string& tableName,
             const std::string& indexName,
             const std::string& valueFieldNames,
-            const TFSMetaDBModelBase& key_
+            const TFSMetaDBModelBase& key_,
+            int direction
         ) {
             auto cursor = Cursor(("index:" + tableName + ":" + indexName + "(" + valueFieldNames + ")"), "raw");
             auto keyBlob = key_.Dump((void*)Session.get());
@@ -235,7 +236,7 @@ namespace NAC {
 
             cursor->set_key(cursor.get(), &key);
 
-            return TFSMetaDBIterator(std::shared_ptr<void>(cursor, (void*)cursor.get()));
+            return TFSMetaDBIterator(std::shared_ptr<void>(cursor, (void*)cursor.get()), direction, std::move(keyBlob));
         }
 
     private:
@@ -263,10 +264,9 @@ namespace NAC {
     void TFSMetaDBSession::CreateIndex(
         const std::string& tableName,
         const std::string& indexName,
-        const std::string& keyFieldNames,
-        const std::string& valueFieldNames
+        const std::string& keyFieldNames
     ) {
-        Impl->CreateIndex(tableName, indexName, keyFieldNames, valueFieldNames);
+        Impl->CreateIndex(tableName, indexName, keyFieldNames);
     }
 
     bool TFSMetaDBSession::Insert(
@@ -305,8 +305,9 @@ namespace NAC {
         const std::string& tableName,
         const std::string& indexName,
         const std::string& valueFieldNames,
-        const TFSMetaDBModelBase& key
+        const TFSMetaDBModelBase& key,
+        int direction
     ) {
-        return Impl->Search(tableName, indexName, valueFieldNames, key);
+        return Impl->Search(tableName, indexName, valueFieldNames, key, direction);
     }
 }

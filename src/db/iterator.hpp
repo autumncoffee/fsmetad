@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "model.hpp"
+#include <ac-common/str.hpp>
 
 namespace NAC {
     class TFSMetaDBIteratorImpl;
@@ -9,7 +10,7 @@ namespace NAC {
     class TFSMetaDBIterator {
     public:
         TFSMetaDBIterator() = delete;
-        TFSMetaDBIterator(const std::shared_ptr<void>&);
+        TFSMetaDBIterator(const std::shared_ptr<void>&, int, TBlob&&);
 
         TFSMetaDBIterator(const TFSMetaDBIterator&) = delete;
         TFSMetaDBIterator(TFSMetaDBIterator&& right) {

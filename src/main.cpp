@@ -1,5 +1,6 @@
 #include <handlers/v1/file/new.hpp>
 #include <handlers/v1/file/get.hpp>
+#include <handlers/v1/file/tag.hpp>
 #include <ac-library/http/server/server.hpp>
 #include <ac-library/http/server/client.hpp>
 #include <ac-library/http/router/router.hpp>
@@ -20,9 +21,12 @@ int main() {
         session.CreateIndex<TFileTagsIndex>();
     }
 
+    auto v1FileTagHandler = std::make_shared<TFileV1TagHandler>();
     auto v1router = std::make_shared<NHTTPRouter::TRouter>();
     v1router->Add("^file/new/*$", std::make_shared<TFileV1NewHandler>());
     v1router->Add("^file/get/([a-z0-9]+)(?:/[^/]+)?/*$", std::make_shared<TFileV1GetHandler>());
+    v1router->Add("^file/tag/([a-z0-9]+)/*$", v1FileTagHandler);
+    v1router->Add("^file/tag/([a-z0-9_\\-]+)(?:/([a-z0-9]+))?/*$", v1FileTagHandler);
 
     NHTTPRouter::TRouter router;
     router.Add("^/v1/", v1router);

@@ -42,12 +42,11 @@ namespace NAC {
         }
     };
 
-    template<typename TFSMetaDBModelDescr, typename TKey_, typename TValue_ = typename TFSMetaDBModelDescr::TValue>
+    template<typename TFSMetaDBModelDescr, typename TKey_>
     class TFSMetaDBIndexDescr {
     public:
         using TModel = TFSMetaDBModelDescr;
         using TKey = TKey_;
-        using TValue = TValue_;
 
         static std::string DBName;
     };

@@ -32,3 +32,23 @@ Downloading file:
 ```
 $ curl 'http://127.0.0.1:15464/v1/file/get/18ae980400000000d8e8eb5c000000000000' -o file
 ```
+
+Tagging a file:
+
+```
+$ curl -X POST 'http://127.0.0.1:15464/v1/file/tag/18ae980400000000d8e8eb5c000000000000' -H 'Content-Type: application/json' -d '{"tags": ["asd", "qwe", "zxc"]}'
+```
+
+Selecting last 20 files tagged with `asd`:
+
+```
+$ curl 'http://127.0.0.1:15464/v1/file/tag/asd'
+{"results":[{"id":"18ae980400000000d8e8eb5c000000000000"}]}
+```
+
+Selecting 20 files older than `18ae980400000000d8e8eb5c000000000000` tagged with `asd`:
+
+```
+$ curl 'http://127.0.0.1:15464/v1/file/tag/asd/18ae980400000000d8e8eb5c000000000000'
+{"results":[]}
+```

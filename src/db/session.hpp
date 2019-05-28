@@ -23,12 +23,12 @@ namespace NAC {
 
     private:
         void CreateTable(const std::string&, const std::string&, const std::string&, const std::string&);
-        void CreateIndex(const std::string&, const std::string&, const std::string&, const std::string&);
+        void CreateIndex(const std::string&, const std::string&, const std::string&);
         bool Insert(const std::string&, const TFSMetaDBModelBase&, const TFSMetaDBModelBase&);
         bool Set(const std::string&, const TFSMetaDBModelBase&, const TFSMetaDBModelBase&);
         bool Append(const std::string&, TFSMetaDBModelBase&, const TFSMetaDBModelBase&);
         bool Get(const std::string&, const TFSMetaDBModelBase&, TFSMetaDBModelBase&);
-        TFSMetaDBIterator Search(const std::string&, const std::string&, const std::string&, const TFSMetaDBModelBase&);
+        TFSMetaDBIterator Search(const std::string&, const std::string&, const std::string&, const TFSMetaDBModelBase&, int);
 
     public:
         template<class TFSMetaDBModelDescr>
@@ -46,8 +46,7 @@ namespace NAC {
             CreateIndex(
                 TFSMetaDBIndexDescr::TModel::DBName,
                 TFSMetaDBIndexDescr::DBName,
-                TFSMetaDBIndexDescr::TKey::__ACModelGetFieldNameListStatic(),
-                TFSMetaDBIndexDescr::TValue::__ACModelGetFieldNameListStatic()
+                TFSMetaDBIndexDescr::TKey::__ACModelGetFieldNameListStatic()
             );
         }
 
@@ -99,15 +98,17 @@ namespace NAC {
             );
         }
 
-        template<class TFSMetaDBIndexDescr>
+        template<class TFSMetaDBIndexDescr, class TValue = typename TFSMetaDBIndexDescr::TModel::TValue>
         TFSMetaDBIterator Search(
-            const typename TFSMetaDBIndexDescr::TKey& key
+            const typename TFSMetaDBIndexDescr::TKey& key,
+            int direction = 0
         ) {
             return Search(
                 TFSMetaDBIndexDescr::TModel::DBName,
                 TFSMetaDBIndexDescr::DBName,
-                TFSMetaDBIndexDescr::TValue::__ACModelGetFieldNameListStatic(),
-                key
+                TValue::__ACModelGetFieldNameListStatic(),
+                key,
+                direction
             );
         }
 
