@@ -3,6 +3,7 @@
 #include <handlers/v1/file/tag.hpp>
 #include <handlers/v1/file/untag.hpp>
 #include <handlers/v1/file/info.hpp>
+#include <handlers/v1/file/remove.hpp>
 #include <ac-library/http/server/server.hpp>
 #include <ac-library/http/server/client.hpp>
 #include <ac-library/http/router/router.hpp>
@@ -32,6 +33,7 @@ int main() {
     v1router->Add("^file/tag/([^/]+)(?:/([a-z0-9]+))?/*$", v1FileTagHandler);
     v1router->Add("^file/untag/([a-z0-9]+)/([^/]+)/*$", std::make_shared<TFileV1UntagHandler>());
     v1router->Add("^file/info/([a-z0-9]+)/*$", std::make_shared<TFileV1InfoHandler>());
+    v1router->Add("^file/remove/([a-z0-9]+)/*$", std::make_shared<TFileV1RemoveHandler>());
 
     NHTTPRouter::TRouter router;
     router.Add("^/v1/", v1router);
