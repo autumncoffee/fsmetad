@@ -9,13 +9,13 @@
 #include <ac-library/http/router/router.hpp>
 #include <stdlib.h>
 #include "request.hpp"
-#include <db/connection.hpp>
+#include <ac-library/wiredtiger/connection.hpp>
 #include <models/files.hpp>
 
 using namespace NAC;
 
 int main() {
-    TFSMetaDB db(getenv("DB_PATH"));
+    TWiredTiger db(getenv("DB_PATH"));
 
     {
         auto&& session = db.Open();

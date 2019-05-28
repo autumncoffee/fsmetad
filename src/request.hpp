@@ -4,13 +4,13 @@
 #include <json.hh>
 #include <utility>
 #include <memory>
-#include <db/connection.hpp>
+#include <ac-library/wiredtiger/connection.hpp>
 
 namespace NAC {
     class TFSMetaDRequest : public NHTTP::TRequest {
     public:
         template<typename... TArgs>
-        TFSMetaDRequest(TFSMetaDB& db, TArgs&&... args)
+        TFSMetaDRequest(TWiredTiger& db, TArgs&&... args)
             : NHTTP::TRequest(std::forward<TArgs>(args)...)
             , Db_(db)
         {
@@ -32,12 +32,12 @@ namespace NAC {
             Send(RespondJson(std::forward<TArgs>(args)...));
         }
 
-        TFSMetaDBSession Db() const {
+        TWiredTigerSession Db() const {
             return Db_.Open();
         }
 
     private:
         std::unique_ptr<nlohmann::json> Json_;
-        TFSMetaDB& Db_;
+        TWiredTiger& Db_;
     };
 }

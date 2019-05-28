@@ -4,5 +4,5 @@ add_library(fsmetad_models ${AC_FSMETAD_MODELS_SOURCES})
 
 target_link_libraries(
     fsmetad_models
-    fsmetad_db
+    ac_library_wiredtiger
 )
