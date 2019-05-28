@@ -16,6 +16,8 @@ int main() {
     {
         auto&& session = db.Open();
         session.CreateTable<TFilesModel>();
+        session.CreateTable<TFileTagsModel>();
+        session.CreateIndex<TFileTagsIndex>();
     }
 
     auto v1router = std::make_shared<NHTTPRouter::TRouter>();

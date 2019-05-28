@@ -9,10 +9,43 @@
 #include <unordered_map>
 #include <ac-common/str.hpp>
 
+namespace {
+    template<typename TKey, typename TValue>
+    static const std::string& FieldNames() {
+        thread_local static std::string out;
+
+        if (out.empty()) {
+            out = TKey::__ACModelGetFieldNameListStatic();
+
+            if (!out.empty()) {
+                out += ",";
+            }
+
+            out += TValue::__ACModelGetFieldNameListStatic();
+        }
+
+        return out;
+    }
+}
+
 namespace NAC {
     template<typename TKey_, typename TValue_>
     class TFSMetaDBModelDescr {
     public:
+        using TKey = TKey_;
+        using TValue = TValue_;
+
+        static std::string DBName;
+
+        static const std::string& FieldNames() {
+            return ::FieldNames<TKey, TValue>();
+        }
+    };
+
+    template<typename TFSMetaDBModelDescr, typename TKey_, typename TValue_ = typename TFSMetaDBModelDescr::TValue>
+    class TFSMetaDBIndexDescr {
+    public:
+        using TModel = TFSMetaDBModelDescr;
         using TKey = TKey_;
         using TValue = TValue_;
 
@@ -121,6 +154,22 @@ private: \
 \
     static const std::string __ACModelFullFormat; \
 \
+    static std::string __ACModelBuildFieldNameList() { \
+        std::string out; \
+\
+        for (const auto& it : __ACModelFields) { \
+            out += it->Name + ","; \
+        } \
+\
+        if (out.size() > 0) { \
+            out.resize(out.size() - 1); \
+        } \
+\
+        return out; \
+    } \
+\
+    static const std::string __ACModelFieldNameList; \
+\
 protected: \
     const std::string& __ACModelGetFullFormat() const override { \
         return __ACModelFullFormat; \
@@ -130,6 +179,10 @@ public: \
     static const std::string& __ACModelGetFullFormatStatic() { \
         return __ACModelFullFormat; \
     } \
+\
+    static const std::string& __ACModelGetFieldNameListStatic() { \
+        return __ACModelFieldNameList; \
+    } \
 };
 
 #define AC_MODEL_IMPL_START(cls) \
@@ -137,7 +190,8 @@ public: \
     __TACModelFields cls::__ACModelFields;
 
 #define AC_MODEL_IMPL_END(cls) \
-    const std::string cls::__ACModelFullFormat = cls::__ACModelBuildFullFormat();
+    const std::string cls::__ACModelFullFormat = cls::__ACModelBuildFullFormat(); \
+    const std::string cls::__ACModelFieldNameList = cls::__ACModelBuildFieldNameList();
 
 namespace NAC {
     class TFSMetaDBModelBase {

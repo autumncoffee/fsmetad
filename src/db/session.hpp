@@ -3,6 +3,7 @@
 #include <string>
 #include "model.hpp"
 #include <iostream>
+#include "iterator.hpp"
 
 namespace NAC {
     class TFSMetaDBSessionImpl;
@@ -21,50 +22,30 @@ namespace NAC {
         ~TFSMetaDBSession();
 
     private:
-        void CreateTable(
-            const std::string&,
-            const std::string&,
-            const std::string&,
-            const std::string&
-        );
-
-        bool Insert(
-            const std::string&,
-            const TFSMetaDBModelBase&,
-            const TFSMetaDBModelBase&
-        );
-
-        bool Get(
-            const std::string&,
-            const TFSMetaDBModelBase&,
-            TFSMetaDBModelBase&
-        );
+        void CreateTable(const std::string&, const std::string&, const std::string&, const std::string&);
+        void CreateIndex(const std::string&, const std::string&, const std::string&, const std::string&);
+        bool Insert(const std::string&, const TFSMetaDBModelBase&, const TFSMetaDBModelBase&);
+        bool Get(const std::string&, const TFSMetaDBModelBase&, TFSMetaDBModelBase&);
+        TFSMetaDBIterator Search(const std::string&, const std::string&, const std::string&, const TFSMetaDBModelBase&);
 
     public:
         template<class TFSMetaDBModelDescr>
         void CreateTable() {
-            std::string fields;
-
-            for (const auto& it : TFSMetaDBModelDescr::TKey::__GetACModelFieldsStatic()) {
-                fields += it->Name + ",";
-            }
-
-            for (const auto& it : TFSMetaDBModelDescr::TValue::__GetACModelFieldsStatic()) {
-                fields += it->Name + ",";
-            }
-
-            if (fields.empty()) {
-                std::cerr << TFSMetaDBModelDescr::DBName << " has no fields" << std::endl;
-                abort();
-            }
-
-            fields.resize(fields.size() - 1);
-
             CreateTable(
                 TFSMetaDBModelDescr::DBName,
                 TFSMetaDBModelDescr::TKey::__ACModelGetFullFormatStatic(),
                 TFSMetaDBModelDescr::TValue::__ACModelGetFullFormatStatic(),
-                fields
+                TFSMetaDBModelDescr::FieldNames()
+            );
+        }
+
+        template<class TFSMetaDBIndexDescr>
+        void CreateIndex() {
+            CreateIndex(
+                TFSMetaDBIndexDescr::TModel::DBName,
+                TFSMetaDBIndexDescr::DBName,
+                TFSMetaDBIndexDescr::TKey::__ACModelGetFieldNameListStatic(),
+                TFSMetaDBIndexDescr::TValue::__ACModelGetFieldNameListStatic()
             );
         }
 
@@ -89,6 +70,18 @@ namespace NAC {
                 TFSMetaDBModelDescr::DBName,
                 key,
                 out
+            );
+        }
+
+        template<class TFSMetaDBIndexDescr>
+        TFSMetaDBIterator Search(
+            const typename TFSMetaDBIndexDescr::TKey& key
+        ) {
+            return Search(
+                TFSMetaDBIndexDescr::TModel::DBName,
+                TFSMetaDBIndexDescr::DBName,
+                TFSMetaDBIndexDescr::TValue::__ACModelGetFieldNameListStatic(),
+                key
             );
         }
 

@@ -50,6 +50,29 @@ namespace NAC {
             }
         }
 
+        void CreateIndex(
+            const std::string& tableName,
+            const std::string& indexName,
+            const std::string& keyFieldNames,
+            const std::string& valueFieldNames
+        ) {
+            int result = Session->create(
+                Session.get(),
+                ("index:" + tableName + ":" + indexName + "(" + valueFieldNames + ")").c_str(),
+                ("columns=(" + keyFieldNames + ")").c_str()
+            );
+
+            if (result != 0) {
+                dprintf(
+                    2,
+                    "Failed to create index: %s\n",
+                    wiredtiger_strerror(result)
+                );
+
+                abort();
+            }
+        }
+
         std::shared_ptr<WT_CURSOR> Cursor(
             const std::string& dbName,
             const char* const options = nullptr
@@ -73,7 +96,7 @@ namespace NAC {
                 abort();
             }
 
-            return std::shared_ptr<WT_CURSOR>(cursor, [](WT_CURSOR* cursor) {
+            return std::shared_ptr<WT_CURSOR>(cursor, [sess = Session](WT_CURSOR* cursor) {
                 cursor->close(cursor);
             });
         }
@@ -119,7 +142,7 @@ namespace NAC {
 
             int result = cursor->search(cursor.get());
 
-            if(result == 0) {
+            if (result == 0) {
                 WT_ITEM value;
                 result = cursor->get_value(cursor.get(), &value);
 
@@ -138,6 +161,24 @@ namespace NAC {
             }
 
             return false;
+        }
+
+        TFSMetaDBIterator Search(
+            const std::string& tableName,
+            const std::string& indexName,
+            const std::string& valueFieldNames,
+            const TFSMetaDBModelBase& key_
+        ) {
+            auto cursor = Cursor(("index:" + tableName + ":" + indexName + "(" + valueFieldNames + ")"), "raw");
+            auto keyBlob = key_.Dump((void*)Session.get());
+            WT_ITEM key {
+                .data = keyBlob.Data(),
+                .size = keyBlob.Size(),
+            };
+
+            cursor->set_key(cursor.get(), &key);
+
+            return TFSMetaDBIterator(std::shared_ptr<void>(cursor, (void*)cursor.get()));
         }
 
     private:
@@ -162,6 +203,15 @@ namespace NAC {
         Impl->CreateTable(dbName, keyFormat, valueFormat, fieldNames);
     }
 
+    void TFSMetaDBSession::CreateIndex(
+        const std::string& tableName,
+        const std::string& indexName,
+        const std::string& keyFieldNames,
+        const std::string& valueFieldNames
+    ) {
+        Impl->CreateIndex(tableName, indexName, keyFieldNames, valueFieldNames);
+    }
+
     bool TFSMetaDBSession::Insert(
         const std::string& dbName,
         const TFSMetaDBModelBase& key,
@@ -176,5 +226,14 @@ namespace NAC {
         TFSMetaDBModelBase& out
     ) {
         return Impl->Get(dbName, key, out);
+    }
+
+    TFSMetaDBIterator TFSMetaDBSession::Search(
+        const std::string& tableName,
+        const std::string& indexName,
+        const std::string& valueFieldNames,
+        const TFSMetaDBModelBase& key
+    ) {
+        return Impl->Search(tableName, indexName, valueFieldNames, key);
     }
 }

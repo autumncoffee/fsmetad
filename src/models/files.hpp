@@ -19,4 +19,25 @@ namespace NAC {
     public:
         static std::string DBName;
     };
+
+    AC_MODEL_BEGIN(TFileTagsData)
+    AC_MODEL_FIELD(TFSMetaDBStringField, Tag)
+    AC_MODEL_FIELD(TFSMetaDBStringField, File)
+    AC_MODEL_END()
+
+    class TFileTagsModel : public TFSMetaDBModelDescr<TFilesKey, TFileTagsData> {
+    public:
+        static std::string DBName;
+    };
+
+    using TFileTagsIndexKey = TFileTagsData;
+
+    AC_MODEL_BEGIN(TFileTagsIndexData)
+    AC_MODEL_FIELD(TFSMetaDBStringField, File)
+    AC_MODEL_END()
+
+    class TFileTagsIndex : public TFSMetaDBIndexDescr<TFileTagsModel, TFileTagsIndexKey, TFileTagsIndexData> {
+    public:
+        static std::string DBName;
+    };
 }
