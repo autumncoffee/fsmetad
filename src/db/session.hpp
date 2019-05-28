@@ -25,6 +25,8 @@ namespace NAC {
         void CreateTable(const std::string&, const std::string&, const std::string&, const std::string&);
         void CreateIndex(const std::string&, const std::string&, const std::string&, const std::string&);
         bool Insert(const std::string&, const TFSMetaDBModelBase&, const TFSMetaDBModelBase&);
+        bool Set(const std::string&, const TFSMetaDBModelBase&, const TFSMetaDBModelBase&);
+        bool Append(const std::string&, TFSMetaDBModelBase&, const TFSMetaDBModelBase&);
         bool Get(const std::string&, const TFSMetaDBModelBase&, TFSMetaDBModelBase&);
         TFSMetaDBIterator Search(const std::string&, const std::string&, const std::string&, const TFSMetaDBModelBase&);
 
@@ -55,6 +57,30 @@ namespace NAC {
             const typename TFSMetaDBModelDescr::TValue& data
         ) {
             return Insert(
+                TFSMetaDBModelDescr::DBName,
+                key,
+                data
+            );
+        }
+
+        template<class TFSMetaDBModelDescr>
+        bool Set(
+            const typename TFSMetaDBModelDescr::TKey& key,
+            const typename TFSMetaDBModelDescr::TValue& data
+        ) {
+            return Set(
+                TFSMetaDBModelDescr::DBName,
+                key,
+                data
+            );
+        }
+
+        template<class TFSMetaDBModelDescr>
+        bool Append(
+            typename TFSMetaDBModelDescr::TKey& key,
+            const typename TFSMetaDBModelDescr::TValue& data
+        ) {
+            return Append(
                 TFSMetaDBModelDescr::DBName,
                 key,
                 data

@@ -73,6 +73,7 @@ namespace NAC {
             }
         }
 
+    private:
         std::shared_ptr<WT_CURSOR> Cursor(
             const std::string& dbName,
             const char* const options = nullptr
@@ -104,9 +105,10 @@ namespace NAC {
         bool Insert(
             const std::string& dbName,
             const TFSMetaDBModelBase& key_,
-            const TFSMetaDBModelBase& value_
+            const TFSMetaDBModelBase& value_,
+            const char* options
         ) {
-            auto cursor = Cursor(("table:" + dbName), "raw");
+            auto cursor = Cursor(("table:" + dbName), options);
             auto keyBlob = key_.Dump((void*)Session.get());
             auto valueBlob = value_.Dump((void*)Session.get());
 
@@ -124,6 +126,61 @@ namespace NAC {
             cursor->set_value(cursor.get(), &value);
 
             return (cursor->insert(cursor.get()) == 0);
+        }
+
+    public:
+        bool Insert(
+            const std::string& dbName,
+            const TFSMetaDBModelBase& key,
+            const TFSMetaDBModelBase& value
+        ) {
+            return Insert(dbName, key, value, "raw,overwrite=false");
+        }
+
+        bool Set(
+            const std::string& dbName,
+            const TFSMetaDBModelBase& key,
+            const TFSMetaDBModelBase& value
+        ) {
+            return Insert(dbName, key, value, "raw,overwrite=true");
+        }
+
+        bool Append(
+            const std::string& dbName,
+            TFSMetaDBModelBase& key_,
+            const TFSMetaDBModelBase& value_
+        ) {
+            auto cursor = Cursor(("table:" + dbName), "raw,overwrite=false,append=true");
+            auto valueBlob = value_.Dump((void*)Session.get());
+
+            WT_ITEM value {
+                .data = valueBlob.Data(),
+                .size = valueBlob.Size(),
+            };
+
+            cursor->set_value(cursor.get(), &value);
+
+            int result = cursor->insert(cursor.get());
+
+            if (result == 0) {
+                WT_ITEM key;
+                result = cursor->get_key(cursor.get(), &key);
+
+                if (result == 0) {
+                    key_.Load((void*)Session.get(), key.size, key.data);
+
+                    return true;
+                }
+
+            } else {
+                dprintf(
+                    2,
+                    "Error appending record: %s\n",
+                    wiredtiger_strerror(result)
+                );
+            }
+
+            return false;
         }
 
         bool Get(
@@ -218,6 +275,22 @@ namespace NAC {
         const TFSMetaDBModelBase& data
     ) {
         return Impl->Insert(dbName, key, data);
+    }
+
+    bool TFSMetaDBSession::Set(
+        const std::string& dbName,
+        const TFSMetaDBModelBase& key,
+        const TFSMetaDBModelBase& data
+    ) {
+        return Impl->Set(dbName, key, data);
+    }
+
+    bool TFSMetaDBSession::Append(
+        const std::string& dbName,
+        TFSMetaDBModelBase& key,
+        const TFSMetaDBModelBase& data
+    ) {
+        return Impl->Append(dbName, key, data);
     }
 
     bool TFSMetaDBSession::Get(
