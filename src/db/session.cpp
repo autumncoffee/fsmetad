@@ -239,6 +239,22 @@ namespace NAC {
             return TFSMetaDBIterator(std::shared_ptr<void>(cursor, (void*)cursor.get()), direction, std::move(keyBlob));
         }
 
+        bool Remove(
+            const std::string& dbName,
+            const TFSMetaDBModelBase& key_
+        ) {
+            auto cursor = Cursor(("table:" + dbName), "raw,overwrite=true");
+            auto keyBlob = key_.Dump((void*)Session.get());
+            WT_ITEM key {
+                .data = keyBlob.Data(),
+                .size = keyBlob.Size(),
+            };
+
+            cursor->set_key(cursor.get(), &key);
+
+            return (cursor->remove(cursor.get()) == 0);
+        }
+
     private:
         std::shared_ptr<WT_SESSION> Session;
     };
@@ -309,5 +325,12 @@ namespace NAC {
         int direction
     ) {
         return Impl->Search(tableName, indexName, valueFieldNames, key, direction);
+    }
+
+    bool TFSMetaDBSession::Remove(
+        const std::string& dbName,
+        const TFSMetaDBModelBase& key
+    ) {
+        return Impl->Remove(dbName, key);
     }
 }

@@ -29,6 +29,7 @@ namespace NAC {
         bool Append(const std::string&, TFSMetaDBModelBase&, const TFSMetaDBModelBase&);
         bool Get(const std::string&, const TFSMetaDBModelBase&, TFSMetaDBModelBase&);
         TFSMetaDBIterator Search(const std::string&, const std::string&, const std::string&, const TFSMetaDBModelBase&, int);
+        bool Remove(const std::string&, const TFSMetaDBModelBase&);
 
     public:
         template<class TFSMetaDBModelDescr>
@@ -109,6 +110,16 @@ namespace NAC {
                 TValue::__ACModelGetFieldNameListStatic(),
                 key,
                 direction
+            );
+        }
+
+        template<class TFSMetaDBModelDescr>
+        bool Remove(
+            const typename TFSMetaDBModelDescr::TKey& key
+        ) {
+            return Remove(
+                TFSMetaDBModelDescr::DBName,
+                key
             );
         }
 

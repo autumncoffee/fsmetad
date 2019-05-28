@@ -52,3 +52,9 @@ Selecting 20 files older than `18ae980400000000d8e8eb5c000000000000` tagged with
 $ curl 'http://127.0.0.1:15464/v1/file/tag/asd/18ae980400000000d8e8eb5c000000000000'
 {"results":[]}
 ```
+
+Removing `asd` tag from `18ae980400000000d8e8eb5c000000000000`:
+
+```
+$ curl -X POST 'http://127.0.0.1:15464/v1/file/untag/18ae980400000000d8e8eb5c000000000000/asd'
+```
