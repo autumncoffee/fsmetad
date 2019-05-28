@@ -36,4 +36,13 @@ namespace NAC {
     public:
         static std::string DBName;
     };
+
+    AC_MODEL_BEGIN(TFileTagsSecondIndexKey)
+    AC_MODEL_FIELD(TFSMetaDBStringField, File)
+    AC_MODEL_END()
+
+    class TFileTagsSecondIndex : public TFSMetaDBIndexDescr<TFileTagsModel, TFileTagsSecondIndexKey> {
+    public:
+        static std::string DBName;
+    };
 }

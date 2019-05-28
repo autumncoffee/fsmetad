@@ -58,3 +58,10 @@ Removing `asd` tag from `18ae980400000000d8e8eb5c000000000000`:
 ```
 $ curl -X POST 'http://127.0.0.1:15464/v1/file/untag/18ae980400000000d8e8eb5c000000000000/asd'
 ```
+
+Getting file info:
+
+```
+$ curl 'http://127.0.0.1:15464/v1/file/info/18ae980400000000d8e8eb5c000000000000'
+{"ctype":"text/plain","id":"18ae980400000000d8e8eb5c000000000000","name":"some name","size":1040,"tags":["qwe", "zxc"]}
+```

@@ -23,4 +23,10 @@ namespace NAC {
     std::string TFileTagsModel::DBName = "file_tags";
 
     std::string TFileTagsIndex::DBName = "ft";
+
+    AC_MODEL_IMPL_START(TFileTagsSecondIndexKey)
+    AC_MODEL_FIELD_IMPL(TFileTagsSecondIndexKey, File)
+    AC_MODEL_IMPL_END(TFileTagsSecondIndexKey)
+
+    std::string TFileTagsSecondIndex::DBName = "ft2";
 }
