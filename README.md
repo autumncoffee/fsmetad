@@ -23,7 +23,7 @@ Using
 Importing new file:
 
 ```
-$ curl -X POST 'http://127.0.0.1:15464/v1/file/new/' -H 'Content-Type: application/json' -d '{"name": "some name", "path": "/full/path/to/existing/file/on/disk", "ctype": "text/plain"}'
+$ curl -X POST 'http://127.0.0.1:15464/v1/file/new/' -H 'Content-Type: application/json' -d '{"name": "some name", "path": "/full/path/to/existing/file/on/disk", "ctype": "text/plain", "tags": []}'
 {"id":"18ae980400000000d8e8eb5c000000000000"}
 ```
 

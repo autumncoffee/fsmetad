@@ -38,16 +38,37 @@ namespace NAC {
         std::string id;
         auto conn = request->Db();
         TFilesKey key;
+        bool ok = false;
 
         while (attempt < 20) {
             id = GenerateID(attempt);
             key.SetId(id);
 
             if (conn.Insert<TFilesModel>(key, data)) {
+                ok = true;
                 break;
             }
 
             ++attempt;
+        }
+
+        if (!ok) {
+            request->Send500();
+            return;
+        }
+
+        if (json.count("tags") > 0) {
+            auto tags = json["tags"].get<std::vector<std::string>>();
+            TFileTagsData data;
+
+            for (const auto& tag : tags) {
+                key.SetId(id + "/" + tag);
+
+                data.SetTag(tag);
+                data.SetFile(id);
+
+                conn.Set<TFileTagsModel>(key, data);
+            }
         }
 
         nlohmann::json out;
