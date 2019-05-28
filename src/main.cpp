@@ -26,7 +26,7 @@ int main() {
     v1router->Add("^file/new/*$", std::make_shared<TFileV1NewHandler>());
     v1router->Add("^file/get/([a-z0-9]+)(?:/[^/]+)?/*$", std::make_shared<TFileV1GetHandler>());
     v1router->Add("^file/tag/([a-z0-9]+)/*$", v1FileTagHandler);
-    v1router->Add("^file/tag/([a-z0-9_\\-]+)(?:/([a-z0-9]+))?/*$", v1FileTagHandler);
+    v1router->Add("^file/tag/([^/]+)(?:/([a-z0-9]+))?/*$", v1FileTagHandler);
 
     NHTTPRouter::TRouter router;
     router.Add("^/v1/", v1router);
