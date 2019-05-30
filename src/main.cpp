@@ -4,6 +4,7 @@
 #include <handlers/v1/file/untag.hpp>
 #include <handlers/v1/file/info.hpp>
 #include <handlers/v1/file/remove.hpp>
+#include <handlers/v1/repl/oplog.hpp>
 #include <ac-library/http/server/server.hpp>
 #include <ac-library/http/server/client.hpp>
 #include <ac-library/http/router/router.hpp>
@@ -11,6 +12,7 @@
 #include "request.hpp"
 #include <ac-library/wiredtiger/connection.hpp>
 #include <models/files.hpp>
+#include <models/oplog.hpp>
 
 using namespace NAC;
 
@@ -23,17 +25,23 @@ int main() {
         session.CreateTable<TFileTagsModel>();
         session.CreateIndex<TFileTagsIndex>();
         session.CreateIndex<TFileTagsSecondIndex>();
+
+        session.CreateTable<TOplogModel>();
     }
 
     auto v1FileTagHandler = std::make_shared<TFileV1TagHandler>();
+    auto v1routerFile = std::make_shared<NHTTPRouter::TRouter>();
+    v1routerFile->Add("^new/*$", std::make_shared<TFileV1NewHandler>());
+    v1routerFile->Add("^get/([a-z0-9]+)(?:/[^/]+)?/*$", std::make_shared<TFileV1GetHandler>());
+    v1routerFile->Add("^tag/([a-z0-9]+)/*$", v1FileTagHandler);
+    v1routerFile->Add("^tag/([^/]+)(?:/([a-z0-9]+))?/*$", v1FileTagHandler);
+    v1routerFile->Add("^untag/([a-z0-9]+)/([^/]+)/*$", std::make_shared<TFileV1UntagHandler>());
+    v1routerFile->Add("^info/([a-z0-9]+)/*$", std::make_shared<TFileV1InfoHandler>());
+    v1routerFile->Add("^remove/([a-z0-9]+)/*$", std::make_shared<TFileV1RemoveHandler>());
+
     auto v1router = std::make_shared<NHTTPRouter::TRouter>();
-    v1router->Add("^file/new/*$", std::make_shared<TFileV1NewHandler>());
-    v1router->Add("^file/get/([a-z0-9]+)(?:/[^/]+)?/*$", std::make_shared<TFileV1GetHandler>());
-    v1router->Add("^file/tag/([a-z0-9]+)/*$", v1FileTagHandler);
-    v1router->Add("^file/tag/([^/]+)(?:/([a-z0-9]+))?/*$", v1FileTagHandler);
-    v1router->Add("^file/untag/([a-z0-9]+)/([^/]+)/*$", std::make_shared<TFileV1UntagHandler>());
-    v1router->Add("^file/info/([a-z0-9]+)/*$", std::make_shared<TFileV1InfoHandler>());
-    v1router->Add("^file/remove/([a-z0-9]+)/*$", std::make_shared<TFileV1RemoveHandler>());
+    v1router->Add("^file/", v1routerFile);
+    v1router->Add("^repl/oplog(?:/([0-9]+))?/*$", std::make_shared<TReplV1OplogHandler>());
 
     NHTTPRouter::TRouter router;
     router.Add("^/v1/", v1router);

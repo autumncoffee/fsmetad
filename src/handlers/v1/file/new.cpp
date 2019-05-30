@@ -1,6 +1,7 @@
 #include "new.hpp"
 #include <models/id.hpp>
 #include <models/files.hpp>
+#include <models/oplog.hpp>
 
 #ifdef RELEASE_FILESYSTEM
 #include <filesystem>
@@ -39,6 +40,7 @@ namespace NAC {
         auto conn = request->Db();
         TFilesKey key;
         bool ok = false;
+        auto tx = conn.Begin();
 
         while (attempt < 20) {
             id = GenerateID(attempt);
@@ -57,6 +59,20 @@ namespace NAC {
             return;
         }
 
+        nlohmann::json op;
+        op["d"].push_back({
+            {"m", TFilesModel::DBName},
+            {"o", "i"},
+            {"d", {
+                {"Id", id},
+                {"Name", data.GetName()},
+                {"Path", data.GetPath()},
+                {"CType", data.GetCType()},
+                {"Size", data.GetSize()},
+                {"Offset", data.GetOffset()},
+            }},
+        });
+
         if (json.count("tags") > 0) {
             auto tags = json["tags"].get<std::vector<std::string>>();
             TFileTagsData data;
@@ -67,8 +83,31 @@ namespace NAC {
                 data.SetTag(tag);
                 data.SetFile(id);
 
-                conn.Set<TFileTagsModel>(key, data);
+                if (!conn.Set<TFileTagsModel>(key, data)) {
+                    request->Send500();
+                    return;
+                }
+
+                op["d"].push_back({
+                    {"m", TFileTagsModel::DBName},
+                    {"o", "i"},
+                    {"d", {
+                        {"Id", key.GetId()},
+                        {"Tag", data.GetTag()},
+                        {"File", data.GetFile()},
+                    }},
+                });
             }
+        }
+
+        if (!TOplogModel::Save(conn, op.dump())) {
+            request->Send500();
+            return;
+        }
+
+        if (!tx.Commit()) {
+            request->Send500();
+            return;
         }
 
         nlohmann::json out;

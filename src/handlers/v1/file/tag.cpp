@@ -1,6 +1,7 @@
 #include "tag.hpp"
 #include <models/files.hpp>
 #include <models/id.hpp>
+#include <models/oplog.hpp>
 #include <stdio.h>
 
 namespace NAC {
@@ -31,6 +32,8 @@ namespace NAC {
             const auto& json = request->Json();
             auto tags = json["tags"].get<std::vector<std::string>>();
             TFileTagsData data;
+            nlohmann::json op;
+            auto tx = conn.Begin();
 
             for (const auto& tag : tags) {
                 key.SetId(args[0] + "/" + tag);
@@ -38,7 +41,30 @@ namespace NAC {
                 data.SetTag(tag);
                 data.SetFile(args[0]);
 
-                conn.Set<TFileTagsModel>(key, data);
+                if (!conn.Set<TFileTagsModel>(key, data)) {
+                    request->Send500();
+                    return;
+                }
+
+                op["d"].push_back({
+                    {"m", TFileTagsModel::DBName},
+                    {"o", "i"},
+                    {"d", {
+                        {"Id", key.GetId()},
+                        {"Tag", data.GetTag()},
+                        {"File", data.GetFile()},
+                    }},
+                });
+            }
+
+            if (!TOplogModel::Save(conn, op.dump())) {
+                request->Send500();
+                return;
+            }
+
+            if (!tx.Commit()) {
+                request->Send500();
+                return;
             }
 
             nlohmann::json out;

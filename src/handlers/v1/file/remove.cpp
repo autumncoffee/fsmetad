@@ -1,5 +1,6 @@
 #include "remove.hpp"
 #include <models/files.hpp>
+#include <models/oplog.hpp>
 #include <ac-common/file.hpp>
 #include <deque>
 #include <unistd.h>
@@ -16,7 +17,9 @@ namespace NAC {
         }
 
         TFilesKey key;
+        nlohmann::json op;
         auto conn = request->Db();
+        auto tx = conn.Begin();
 
         {
             TFileTagsSecondIndexKey tagIndexKey;
@@ -36,7 +39,19 @@ namespace NAC {
 
             for (const auto& id : toRemove) {
                 key.SetId(id);
-                conn.Remove<TFileTagsModel>(key);
+
+                if (!conn.Remove<TFileTagsModel>(key)) {
+                    request->Send500();
+                    return;
+                }
+
+                op["d"].push_back({
+                    {"m", TFileTagsModel::DBName},
+                    {"o", "r"},
+                    {"d", {
+                        {"Id", id},
+                    }},
+                });
             }
         }
 
@@ -56,7 +71,28 @@ namespace NAC {
                 }
             }
 
-            conn.Remove<TFilesModel>(key);
+            if (!conn.Remove<TFilesModel>(key)) {
+                request->Send500();
+                return;
+            }
+
+            op["d"].push_back({
+                {"m", TFilesModel::DBName},
+                {"o", "r"},
+                {"d", {
+                    {"Id", key.GetId()},
+                }},
+            });
+        }
+
+        if (!TOplogModel::Save(conn, op.dump())) {
+            request->Send500();
+            return;
+        }
+
+        if (!tx.Commit()) {
+            request->Send500();
+            return;
         }
 
         nlohmann::json out;
