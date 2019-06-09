@@ -9,7 +9,7 @@ namespace NAC {
         const std::shared_ptr<TFSMetaDRequest> request,
         const std::vector<std::string>& args
     ) {
-        if (request->Method() == "post") {
+        if (request->IsPost()) {
             if (args.size() != 1) {
                 request->Send400();
                 return;
