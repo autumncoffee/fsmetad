@@ -62,7 +62,7 @@ namespace NAC {
             const auto& path = data.GetPath();
             TFile file(path, TFile::ACCESS_INFO);
 
-            if (file.IsOK()) {
+            if (file) {
                 if (unlink(path.c_str()) != 0) {
                     perror("unlink");
 

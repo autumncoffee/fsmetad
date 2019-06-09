@@ -21,7 +21,7 @@ namespace NAC {
         if (conn.Get<TFilesModel>(key, data)) {
             TFile file(data.GetPath(), TFile::ACCESS_INFO);
 
-            if (file.IsOK()) {
+            if (file) {
                 nlohmann::json out;
                 out["id"] = args[0];
                 out["name"] = data.GetName();
