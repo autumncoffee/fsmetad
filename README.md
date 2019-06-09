@@ -14,7 +14,7 @@ Running
 ---
 
 ```
-$ DB_PATH=/path/to/metadata/database/dir BIND_V4=127.0.0.1 BIND_PORT=15464 ./result/bin/fsmetad
+$ NODE_NUM=0 DB_PATH=/path/to/metadata/database/dir BIND_V4=127.0.0.1 BIND_PORT=15464 ./result/bin/fsmetad
 ```
 
 Using

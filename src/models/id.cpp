@@ -6,22 +6,22 @@
 #include <ac-common/utils/htonll.hpp>
 
 namespace NAC {
-    std::string GenerateID(uint16_t attempt) {
+    std::string GenerateID(uint16_t suffix) {
         thread_local static std::random_device rd;
         thread_local static std::mt19937 g(rd());
         thread_local static std::uniform_int_distribution<uint64_t> dis(0, (std::numeric_limits<uint64_t>::max() - 1));
 
         uint64_t rnd(dis(g));
         uint64_t tm(time(nullptr));
-        unsigned char buf [sizeof(tm) + sizeof(rnd) + sizeof(attempt)];
+        unsigned char buf [sizeof(tm) + sizeof(rnd) + sizeof(suffix)];
 
         rnd = htonll(rnd);
         tm = htonll(tm);
-        attempt = htons(attempt);
+        suffix = htons(suffix);
 
         memcpy(buf, &tm, sizeof(tm));
         memcpy(buf + sizeof(tm), &rnd, sizeof(rnd));
-        memcpy(buf + sizeof(tm) + sizeof(rnd), &attempt, sizeof(attempt));
+        memcpy(buf + sizeof(tm) + sizeof(rnd), &suffix, sizeof(suffix));
 
         std::string out;
         out.reserve(sizeof(buf) * 2);

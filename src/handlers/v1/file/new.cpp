@@ -35,7 +35,7 @@ namespace NAC {
             .SetOffset(0)
         ;
 
-        uint16_t attempt = 0;
+        unsigned char attempt = 0;
         std::string id;
         auto conn = request->Db();
         TFilesKey key;
@@ -43,7 +43,7 @@ namespace NAC {
         auto tx = conn.Begin();
 
         while (attempt < 20) {
-            id = GenerateID(attempt);
+            id = GenerateID(NodeNum);
             key.SetId(id);
 
             if (conn.Insert<TFilesModel>(key, data)) {
