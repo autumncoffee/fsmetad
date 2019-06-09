@@ -46,7 +46,9 @@ namespace NAC {
                         request->Send(std::move(response));
 
                     } else {
-                        std::deque<std::tuple<size_t, size_t, TBlob>> parts;
+                        const bool onlyOnePart(range.Ranges.size() == 1);
+                        auto response = request->Respond206();
+                        response.Memorize(file);
 
                         for (const auto& spec : range.Ranges) {
                             char* start = nullptr;
@@ -82,63 +84,22 @@ namespace NAC {
                             }
 
                             const size_t fromByte(start - file->Data());
-                            parts.emplace_back(fromByte, fromByte + size - sizeMod, TBlob(size, start));
-                        }
+                            auto part = (onlyOnePart ? std::move(response) : NHTTP::TResponse());
 
-                        auto response = request->Respond206();
+                            part.Header("Content-Type", data.GetCType());
+                            part.Header("Content-Range", range.Unit + " " + std::to_string(fromByte) + "-" + std::to_string(fromByte + size - sizeMod) + "/" + std::to_string(file->Size()));
+                            part.Wrap(size, start);
 
-                        if (parts.size() == 1) {
-                            const auto& [ from, to, blob ] = parts.front();
-
-                            response.Header("Content-Type", data.GetCType());
-                            response.Header("Content-Range", range.Unit + " " + std::to_string(from) + "-" + std::to_string(to) + "/" + std::to_string(file->Size()));
-                            response.Memorize(file);
-                            response.Wrap(blob.Size(), blob.Data());
-                            request->Send(std::move(response));
-
-                        } else {
-                            TBlobSequence body;
-                            body.Memorize(file);
-                            const std::string boundary(NHTTPUtils::Boundary());
-                            bool isFirst(true);
-                            size_t contentLength = 0;
-
-                            for (const auto& [ from, to, blob ] : parts) {
-                                TBlob preamble;
-                                preamble
-                                    << std::string(isFirst ? "" : "\r\n") << "--" << boundary << "\r\n"
-                                    << "Content-Type: " << data.GetCType() << "\r\n"
-                                    << "Content-Range: " << range.Unit << " " << std::to_string(from) << "-" << std::to_string(to) << "/" << std::to_string(file->Size()) << "\r\n"
-                                    << "\r\n"
-                                ;
-
-                                contentLength += preamble.Size();
-                                contentLength += blob.Size();
-
-                                body.Concat(std::move(preamble));
-                                body.Concat(blob);
-
-                                isFirst = false;
+                            if (onlyOnePart) {
+                                request->Send(std::move(part));
+                                return;
                             }
 
-                            {
-                                TBlob end;
-                                end << "\r\n--" << boundary << "--\r\n";
-
-                                contentLength += end.Size();
-                                body.Concat(std::move(end));
-                            }
-
-                            response.DoNotAddContentLength();
-                            response.Header("Content-Type", "multipart/byteranges; boundary=" + boundary);
-                            response.Header("Content-Length", std::to_string(contentLength));
-
-                            auto preamble = response.Preamble();
-                            preamble << "\r\n";
-
-                            request->Send(std::move(preamble));
-                            request->Send(std::move(body));
+                            response.AddPart(std::move(part));
                         }
+
+                        response.Header("Content-Type", "multipart/byteranges");
+                        request->Send(std::move(response));
                     }
                 }
 
