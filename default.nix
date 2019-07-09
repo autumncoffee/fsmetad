@@ -14,7 +14,7 @@ in rec {
     sourceRoot = "src";
     buildInputs = [
       pkgs.cmake
-      pkgs.openssl
+      pkgs.openssl_1_1
       pkgs.pcre-cpp
       pkgs.gperftools
       wiredtiger
