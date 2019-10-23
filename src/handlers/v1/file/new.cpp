@@ -2,6 +2,8 @@
 #include <models/id.hpp>
 #include <models/files.hpp>
 #include <models/oplog.hpp>
+#include <ac-common/file.hpp>
+#include <stdlib.h>
 
 #ifdef RELEASE_FILESYSTEM
 #include <filesystem>
@@ -19,9 +21,61 @@ namespace NAC {
         const std::vector<std::string>& args
     ) {
         const auto& json = request->Json();
-        auto path = json["path"].get<std::string>();
+        std::string path;
+        uint64_t size(0);
+        uint64_t toSync(0);
 
-        if (!std::filesystem::is_regular_file(path)) {
+        if (json.count("path") > 0) {
+            path = json["path"].get<std::string>();
+
+            if (!std::filesystem::is_regular_file(path)) {
+                request->Send400();
+                return;
+            }
+
+        } else if (json.count("size") > 0) {
+            size = json["size"].get<uint64_t>();
+
+            if (size == 0) {
+                request->Send400();
+                return;
+            }
+
+            const char* root_ = getenv("FS_ROOT");
+
+            if (!root_) {
+                request->Send500();
+                return;
+            }
+
+            std::filesystem::path root(root_);
+
+            for (size_t i = 0; i < 10; ++i) {
+                path = (root / GenerateID(NodeNum)).string();
+                TFile file(path, TFile::ACCESS_CREATEX);
+
+                if (!file) {
+                    continue;
+                }
+
+                file.Resize(size);
+
+                if (!file) {
+                    request->Send500();
+                    return;
+                }
+
+                toSync = size;
+                size = 0;
+                break;
+            }
+
+            if (size != 0) {
+                request->Send500();
+                return;
+            }
+
+        } else {
             request->Send400();
             return;
         }
@@ -31,7 +85,7 @@ namespace NAC {
             .SetName(json["name"].get<std::string>())
             .SetPath(path)
             .SetCType(json["ctype"].get<std::string>())
-            .SetSize(0)
+            .SetSize(size)
             .SetOffset(0)
         ;
 
@@ -72,6 +126,19 @@ namespace NAC {
                 {"Offset", data.GetOffset()},
             }},
         });
+
+        if (toSync > 0) {
+            TFilesSyncInfo fileSyncInfo;
+            fileSyncInfo
+                .SetSize(toSync)
+                .SetOffset(0)
+            ;
+
+            if (!conn.Insert<TFilesSyncInfoModel>(key, fileSyncInfo)) {
+                request->Send500();
+                return;
+            }
+        }
 
         if (json.count("tags") > 0) {
             auto tags = json["tags"].get<std::vector<std::string>>();

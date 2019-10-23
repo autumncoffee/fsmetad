@@ -4,12 +4,14 @@
 #include <handlers/v1/file/untag.hpp>
 #include <handlers/v1/file/info.hpp>
 #include <handlers/v1/file/remove.hpp>
+#include <handlers/v1/file/sync.hpp>
 #include <handlers/v1/repl/oplog.hpp>
 #include <ac-library/http/server/server.hpp>
 #include <ac-library/http/server/client.hpp>
 #include <ac-library/http/router/router.hpp>
 #include <stdlib.h>
 #include "request.hpp"
+#include "client.hpp"
 #include <ac-library/wiredtiger/connection.hpp>
 #include <models/files.hpp>
 #include <models/oplog.hpp>
@@ -38,6 +40,7 @@ int main() {
         session.CreateIndex<TFileTagsSecondIndex>();
 
         session.CreateTable<TOplogModel>();
+        session.CreateTable<TFilesSyncInfoModel>();
     }
 
     auto v1FileTagHandler = std::make_shared<TFileV1TagHandler>();
@@ -49,6 +52,7 @@ int main() {
     v1routerFile->Add("^untag/([a-z0-9]+)/([^/]+)/*$", std::make_shared<TFileV1UntagHandler>());
     v1routerFile->Add("^info/([a-z0-9]+)/*$", std::make_shared<TFileV1InfoHandler>());
     v1routerFile->Add("^remove/([a-z0-9]+)/*$", std::make_shared<TFileV1RemoveHandler>());
+    v1routerFile->Add("^sync/([a-z0-9]+)/*$", std::make_shared<TFileV1SyncHandler>());
 
     auto v1router = std::make_shared<NHTTPRouter::TRouter>();
     v1router->Add("^file/", v1routerFile);
@@ -63,6 +67,7 @@ int main() {
     args.BindIP6 = getenv("BIND_V6");
     args.BindPort6 = args.BindPort4 = NStringUtils::FromString<unsigned short>(getenv("BIND_PORT"));
     args.ThreadCount = 10;
+    args.ClientFactory = NNetServer::TServer::TArgs::MakeClientFactory<TFSMetaDClient>();
     args.ClientArgsFactory = [&router, &db]() {
         return new NHTTPServer::TClient::TArgs(router, [&db](
             std::shared_ptr<NHTTPLikeParser::TParsedData> data,

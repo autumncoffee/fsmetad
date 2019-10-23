@@ -5,6 +5,7 @@
 #include <utility>
 #include <memory>
 #include <ac-library/wiredtiger/connection.hpp>
+#include <ac-common/memdisk.hpp>
 
 namespace NAC {
     class TFSMetaDRequest : public NHTTP::TRequest {
@@ -13,6 +14,7 @@ namespace NAC {
         TFSMetaDRequest(TWiredTiger& db, TArgs&&... args)
             : NHTTP::TRequest(std::forward<TArgs>(args)...)
             , Db_(db)
+            , SyncFileBuf_(TMemDisk(16, "/tmp/fsmetadsync.XXXXXXXXXX"))
         {
         }
 
@@ -36,8 +38,22 @@ namespace NAC {
             return Db_.Open();
         }
 
+        void SetSyncFileID(const std::string& id) {
+            SyncFileID = id;
+        }
+
+        const std::string& GetSyncFileID() const {
+            return SyncFileID;
+        }
+
+        TMemDisk& SyncFileBuf() {
+            return SyncFileBuf_;
+        }
+
     private:
         std::unique_ptr<nlohmann::json> Json_;
         TWiredTiger& Db_;
+        std::string SyncFileID;
+        TMemDisk SyncFileBuf_;
     };
 }

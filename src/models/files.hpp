@@ -45,4 +45,14 @@ namespace NAC {
     public:
         static std::string DBName;
     };
+
+    AC_MODEL_BEGIN(TFilesSyncInfo)
+    AC_MODEL_FIELD(TWiredTigerUIntField, Size)
+    AC_MODEL_FIELD(TWiredTigerUIntField, Offset)
+    AC_MODEL_END()
+
+    class TFilesSyncInfoModel : public TWiredTigerModelDescr<TFilesKey, TFilesSyncInfo> {
+    public:
+        static std::string DBName;
+    };
 }

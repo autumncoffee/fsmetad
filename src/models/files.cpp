@@ -29,4 +29,11 @@ namespace NAC {
     AC_MODEL_IMPL_END(TFileTagsSecondIndexKey)
 
     std::string TFileTagsSecondIndex::DBName = "ft2";
+
+    AC_MODEL_IMPL_START(TFilesSyncInfo)
+    AC_MODEL_FIELD_IMPL(TFilesSyncInfo, Size)
+    AC_MODEL_FIELD_IMPL(TFilesSyncInfo, Offset)
+    AC_MODEL_IMPL_END(TFilesSyncInfo)
+
+    std::string TFilesSyncInfoModel::DBName = "filesyncinfo";
 }

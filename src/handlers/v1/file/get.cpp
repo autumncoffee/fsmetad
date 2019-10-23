@@ -20,8 +20,23 @@ namespace NAC {
         key.SetId(args[0]);
 
         TFilesData data;
+        auto&& conn = request->Db();
 
-        if (request->Db().Get<TFilesModel>(key, data)) {
+        if (conn.Get<TFilesModel>(key, data)) {
+            {
+                TFilesSyncInfo syncInfo;
+
+                if (conn.Get<TFilesSyncInfoModel>(key, syncInfo)) {
+                    if (syncInfo.GetOffset() >= syncInfo.GetSize()) {
+                        conn.Remove<TFilesSyncInfoModel>(key);
+
+                    } else {
+                        request->Send404();
+                        return;
+                    }
+                }
+            }
+
             request->SendFile(
                 data.GetPath(),
                 data.GetCType(),
