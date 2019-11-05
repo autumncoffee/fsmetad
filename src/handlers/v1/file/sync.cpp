@@ -6,6 +6,8 @@
 #include <ac-common/str.hpp>
 #include <tuple>
 #include <utils.hpp>
+#include <stdio.h>
+#include <iostream>
 
 namespace NAC {
     void TFileV1SyncHandler::Handle(
@@ -29,9 +31,23 @@ namespace NAC {
         }
 
         if (data.GetOffset() >= data.GetSize()) {
-            conn.Remove<TFilesSyncInfoModel>(key);
-            request->Send404();
-            return;
+            TFilesData fileData;
+
+            if (!conn.Get<TFilesModel>(key, fileData)) {
+                conn.Remove<TFilesSyncInfoModel>(key);
+                std::cerr << "file does not exist" << std::endl;
+                request->Send404();
+                return;
+            }
+
+            if (rename(fileData.GetTempPath().c_str(), fileData.GetPath().c_str()) == 0) {
+                conn.Remove<TFilesSyncInfoModel>(key);
+
+            } else {
+                perror("rename");
+                request->Send500();
+                return;
+            }
         }
 
         request->WebSocketStart();

@@ -27,13 +27,8 @@ namespace NAC {
                 TFilesSyncInfo syncInfo;
 
                 if (conn.Get<TFilesSyncInfoModel>(key, syncInfo)) {
-                    if (syncInfo.GetOffset() >= syncInfo.GetSize()) {
-                        conn.Remove<TFilesSyncInfoModel>(key);
-
-                    } else {
-                        request->Send404();
-                        return;
-                    }
+                    request->Send404();
+                    return;
                 }
             }
 

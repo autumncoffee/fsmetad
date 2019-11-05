@@ -13,6 +13,10 @@ namespace NAC {
     AC_MODEL_FIELD(TWiredTigerStringField, CType)
     AC_MODEL_FIELD(TWiredTigerUIntField, Size)
     AC_MODEL_FIELD(TWiredTigerUIntField, Offset)
+
+    public:
+        std::string GetTempPath() const;
+
     AC_MODEL_END()
 
     class TFilesModel : public TWiredTigerModelDescr<TFilesKey, TFilesData> {

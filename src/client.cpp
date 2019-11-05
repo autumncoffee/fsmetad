@@ -5,6 +5,7 @@
 #include <ac-common/utils/htonll.hpp>
 #include <ac-common/file.hpp>
 #include <iostream>
+#include <stdio.h>
 
 namespace NAC {
     void TFSMetaDClient::HandleFrame(
@@ -92,7 +93,7 @@ namespace NAC {
             return;
         }
 
-        TFile file(fileData.GetPath(), TFile::ACCESS_RDWR);
+        TFile file(fileData.GetTempPath(), TFile::ACCESS_RDWR);
 
         if (!file) {
             Drop();
@@ -117,7 +118,15 @@ namespace NAC {
             conn.Set<TFilesSyncInfoModel>(key, data);
 
         } else {
-            conn.Remove<TFilesSyncInfoModel>(key);
+            if (rename(file.Path().c_str(), fileData.GetPath().c_str()) == 0) {
+                conn.Remove<TFilesSyncInfoModel>(key);
+
+            } else {
+                perror("rename");
+                Drop();
+                return;
+            }
+
             // std::cerr << "DONE: " << std::to_string(data.GetOffset()) << "/" << std::to_string(data.GetSize()) << std::endl;
         }
 

@@ -1,4 +1,5 @@
 #include "files.hpp"
+#include <fs_wrapper.hpp>
 
 namespace NAC {
     AC_MODEL_IMPL_START(TFilesKey)
@@ -11,6 +12,12 @@ namespace NAC {
     AC_MODEL_FIELD_IMPL(TFilesData, CType)
     AC_MODEL_FIELD_IMPL(TFilesData, Size)
     AC_MODEL_FIELD_IMPL(TFilesData, Offset)
+
+    std::string TFilesData::GetTempPath() const {
+        const std::filesystem::path path(GetPath());
+        return (path.parent_path() / ("." + path.filename().string())).string();
+    }
+
     AC_MODEL_IMPL_END(TFilesData)
 
     std::string TFilesModel::DBName = "files";

@@ -4,6 +4,10 @@
 
 namespace NAC {
     TFileSyncFrameHeader FileSyncFrameHeader(size_t size, size_t offset) {
+        if (offset > size) {
+            offset = size;
+        }
+
         return TFileSyncFrameHeader {
             .Offset = offset,
             .Size = std::min((size - offset), (size_t)(20 * 1024 * 1024)),

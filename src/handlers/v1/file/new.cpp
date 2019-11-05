@@ -4,16 +4,7 @@
 #include <models/oplog.hpp>
 #include <ac-common/file.hpp>
 #include <stdlib.h>
-
-#ifdef RELEASE_FILESYSTEM
-#include <filesystem>
-#else
-#include <experimental/filesystem>
-
-namespace std {
-    namespace filesystem = std::experimental::filesystem;
-}
-#endif
+#include <fs_wrapper.hpp>
 
 namespace NAC {
     void TFileV1NewHandler::Handle(
@@ -51,16 +42,18 @@ namespace NAC {
             std::filesystem::path root(root_);
 
             for (size_t i = 0; i < 10; ++i) {
-                path = (root / GenerateID(NodeNum)).string();
+                auto filename = GenerateID(NodeNum);
+                path = (root / filename).string();
                 TFile file(path, TFile::ACCESS_CREATEX);
 
                 if (!file) {
                     continue;
                 }
 
-                file.Resize(size);
+                TFile tmpFile((root / ("." + filename)).string(), TFile::ACCESS_CREATEX);
+                tmpFile.Resize(size);
 
-                if (!file) {
+                if (!tmpFile) {
                     request->Send500();
                     return;
                 }
