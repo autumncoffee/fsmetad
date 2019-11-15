@@ -93,7 +93,8 @@ namespace NAC {
             return;
         }
 
-        TFile file(fileData.GetTempPath(), TFile::ACCESS_RDWR);
+        TFile file(fileData.GetTempPath(), TFile::ACCESS_WRONLY_FSYNC);
+        file.Stat();
 
         if (!file) {
             Drop();
@@ -108,9 +109,13 @@ namespace NAC {
             return;
         }
 
-        memcpy(file.Data() + header.Offset, frameData + sizeof(header), header.Size);
+        file.Write(header.Offset, header.Size, frameData + sizeof(header));
 
-        file.FSync();
+        if (!file) {
+            Drop();
+            std::cerr << "write failed" << std::endl;
+            return;
+        }
 
         data.SetOffset(header.Offset + header.Size);
 
