@@ -26,6 +26,20 @@ namespace NAC {
         auto&& conn = request->Db();
 
         if (!conn.Get<TFilesSyncInfoModel>(key, data)) {
+            TFilesData fileData;
+
+            if (conn.Get<TFilesModel>(key, fileData)) {
+                TFile file(fileData.GetPath(), TFile::ACCESS_INFO);
+
+                if (file) {
+                    request->WebSocketStart();
+                    request->SetSyncFileID(args[0]);
+                    request->Send(FileSyncFrameV1(file.Size(), file.Size()));
+
+                    return;
+                }
+            }
+
             request->Send404();
             return;
         }
