@@ -1,6 +1,7 @@
 #include <handlers/v1/file/new.hpp>
 #include <handlers/v1/file/get.hpp>
 #include <handlers/v1/file/tag.hpp>
+#include <handlers/v1/file/name.hpp>
 #include <handlers/v1/file/untag.hpp>
 #include <handlers/v1/file/info.hpp>
 #include <handlers/v1/file/remove.hpp>
@@ -38,6 +39,7 @@ int main() {
         session.CreateTable<TFileTagsModel>();
         session.CreateIndex<TFileTagsIndex>();
         session.CreateIndex<TFileTagsSecondIndex>();
+        session.CreateIndex<TFileNameIndex>();
 
         session.CreateTable<TOplogModel>();
         session.CreateTable<TFilesSyncInfoModel>();
@@ -49,6 +51,7 @@ int main() {
     v1routerFile->Add("^get/([a-z0-9]+)(?:/[^/]+)?/*$", std::make_shared<TFileV1GetHandler>());
     v1routerFile->Add("^tag/([a-z0-9]+)/*$", v1FileTagHandler);
     v1routerFile->Add("^tag/([^/]+)(?:/([a-z0-9]+))?/*$", v1FileTagHandler);
+    v1routerFile->Add("^name/([^/]+)(?:/([a-z0-9]+))?/*$", std::make_shared<TFileV1NameHandler>());
     v1routerFile->Add("^untag/([a-z0-9]+)/([^/]+)/*$", std::make_shared<TFileV1UntagHandler>());
     v1routerFile->Add("^info/([a-z0-9]+)/*$", std::make_shared<TFileV1InfoHandler>());
     v1routerFile->Add("^remove/([a-z0-9]+)/*$", std::make_shared<TFileV1RemoveHandler>());

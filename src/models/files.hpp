@@ -59,4 +59,14 @@ namespace NAC {
     public:
         static std::string DBName;
     };
+
+    AC_MODEL_BEGIN(TFileNameIndexKey)
+    AC_MODEL_FIELD(TWiredTigerStringField, Name)
+    AC_MODEL_FIELD(TWiredTigerStringField, Id)
+    AC_MODEL_END()
+
+    class TFileNameIndex : public TWiredTigerIndexDescr<TFilesModel, TFileNameIndexKey> {
+    public:
+        static std::string DBName;
+    };
 }

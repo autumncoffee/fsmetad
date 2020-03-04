@@ -43,4 +43,11 @@ namespace NAC {
     AC_MODEL_IMPL_END(TFilesSyncInfo)
 
     std::string TFilesSyncInfoModel::DBName = "filesyncinfo";
+
+    AC_MODEL_IMPL_START(TFileNameIndexKey)
+    AC_MODEL_FIELD_IMPL(TFileNameIndexKey, Name)
+    AC_MODEL_FIELD_IMPL(TFileNameIndexKey, Id)
+    AC_MODEL_IMPL_END(TFileNameIndexKey)
+
+    std::string TFileNameIndex::DBName = "filenames";
 }
