@@ -5,6 +5,7 @@
 #include <ac-common/file.hpp>
 #include <stdlib.h>
 #include <fs_wrapper.hpp>
+#include <string.h>
 
 namespace NAC {
     void TFileV1NewHandler::Handle(
@@ -39,18 +40,44 @@ namespace NAC {
                 return;
             }
 
-            std::filesystem::path root(root_);
+            const char* disableTree_ = getenv("NO_FS_TREE");
+            const bool disableTree(disableTree_ && (strlen(disableTree_) == 1) && (disableTree_[0] == '1'));
+
+            const std::filesystem::path root(root_);
 
             for (size_t i = 0; i < 10; ++i) {
                 auto filename = GenerateID(NodeNum);
-                path = (root / filename).string();
+                std::filesystem::path localRoot;
+
+                if (disableTree) {
+                    localRoot = root;
+
+                } else {
+                    constexpr static const size_t timeSize = sizeof(uint64_t) * 2;
+
+                    localRoot = (
+                        root
+                        / std::string(filename.data() + timeSize, 2)
+                        / std::string(filename.data() + timeSize + 2, 4)
+                    );
+
+                    std::error_code error;
+                    std::filesystem::create_directories(localRoot, error);
+
+                    if (error) {
+                        continue;
+                    }
+                }
+
+                path = (localRoot / filename).string();
+
                 TFile file(path, TFile::ACCESS_CREATEX);
 
                 if (!file) {
                     continue;
                 }
 
-                TFile tmpFile((root / ("." + filename)).string(), TFile::ACCESS_CREATEX);
+                TFile tmpFile((localRoot / ("." + filename)).string(), TFile::ACCESS_CREATEX);
                 tmpFile.Resize(size);
 
                 if (!tmpFile) {
