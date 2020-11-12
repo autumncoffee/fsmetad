@@ -93,7 +93,7 @@ namespace NAC {
             return;
         }
 
-        TFile file(fileData.GetTempPath(), TFile::ACCESS_WRONLY_FSYNC);
+        TFile file(fileData.GetTempPath(), TFile::ACCESS_WRONLY);
         file.Stat();
 
         if (!file) {
@@ -110,6 +110,7 @@ namespace NAC {
         }
 
         file.Write(header.Offset, header.Size, frameData + sizeof(header));
+        file.FSync();
 
         if (!file) {
             Drop();
