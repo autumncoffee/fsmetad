@@ -41,14 +41,14 @@ namespace NAC {
             );
 
             if (request->QueryParam("dl") == std::string("1")) {
-                response->Header("Content-Disposition", std::string("attachment; filename=") + (std::string)NHTTP::URLEscape(data.GetName()));
+                response.Header("Content-Disposition", std::string("attachment; filename=") + (std::string)NHTTP::URLEscape(data.GetName()));
             }
 
             {
                 const auto& contentEncoding = request->HeaderValue("x-fsmd-ce");
 
                 if (!contentEncoding.empty()) {
-                    response->Header("Content-Encoding", contentEncoding);
+                    response.Header("Content-Encoding", contentEncoding);
                 }
             }
 
