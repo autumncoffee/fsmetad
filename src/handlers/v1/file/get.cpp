@@ -5,6 +5,7 @@
 #include <deque>
 #include <ac-common/str.hpp>
 #include <tuple>
+#include <ac-library/http/urlescape.hpp>
 
 namespace NAC {
     void TFileV1GetHandler::Handle(
@@ -32,12 +33,26 @@ namespace NAC {
                 }
             }
 
-            request->SendFile(
+            auto response = request->RespondFile(
                 data.GetPath(),
                 data.GetCType(),
                 data.GetSize(),
                 data.GetOffset()
             );
+
+            if (request->QueryParam("dl") == std::string("1")) {
+                response->Header("Content-Disposition", std::string("attachment; filename=") + (std::string)NHTTP::URLEscape(data.GetName()));
+            }
+
+            {
+                const auto& contentEncoding = request->HeaderValue("x-fsmd-ce");
+
+                if (!contentEncoding.empty()) {
+                    response->Header("Content-Encoding", contentEncoding);
+                }
+            }
+
+            request->Send(response);
 
         } else {
             request->Send404();
