@@ -42,6 +42,7 @@ add_subdirectory("handlers")
 
 add_subdirectory("../ac/ac-common" ac_common_bindir)
 add_subdirectory("../ac/ac-library/http" ac_library_http_bindir)
+add_subdirectory("../ac/ac-library/models" ac_library_models_bindir)
 add_subdirectory("../ac/ac-library/wiredtiger" ac_library_wiredtiger_bindir)
 
 add_executable(fsmetad ${AC_FSMETAD_SOURCES})

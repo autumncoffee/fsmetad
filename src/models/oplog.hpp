@@ -5,10 +5,10 @@
 #include <ac-library/wiredtiger/session.hpp>
 
 namespace NAC {
-    AC_MODEL_BEGIN(TOplogData)
-    AC_MODEL_FIELD(TWiredTigerUIntField, Timestamp)
-    AC_MODEL_FIELD(TWiredTigerStringField, Data)
-    AC_MODEL_END()
+    AC_WT_MODEL_BEGIN(TOplogData)
+    AC_WT_MODEL_FIELD(TWiredTigerUIntField, Timestamp)
+    AC_WT_MODEL_FIELD(TWiredTigerStringField, Data)
+    AC_WT_MODEL_END()
 
     class TOplogModel : public TWiredTigerModelDescr<TWiredTigerAutoincrementKey, TOplogData> {
     public:
