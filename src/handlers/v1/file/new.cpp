@@ -20,7 +20,7 @@ namespace NAC {
         if (json.count("path") > 0) {
             path = json["path"].get<std::string>();
 
-            if (!std::filesystem::is_regular_file(path)) {
+            if (!stdfs::is_regular_file(path)) {
                 request->Send400();
                 return;
             }
@@ -43,11 +43,11 @@ namespace NAC {
             const char* disableTree_ = getenv("NO_FS_TREE");
             const bool disableTree(disableTree_ && (strlen(disableTree_) == 1) && (disableTree_[0] == '1'));
 
-            const std::filesystem::path root(root_);
+            const stdfs::path root(root_);
 
             for (size_t i = 0; i < 10; ++i) {
                 auto filename = GenerateID(NodeNum);
-                std::filesystem::path localRoot;
+                stdfs::path localRoot;
 
                 if (disableTree) {
                     localRoot = root;
@@ -62,7 +62,7 @@ namespace NAC {
                     );
 
                     std::error_code error;
-                    std::filesystem::create_directories(localRoot, error);
+                    stdfs::create_directories(localRoot, error);
 
                     if (error) {
                         continue;

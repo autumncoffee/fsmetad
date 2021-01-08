@@ -14,7 +14,7 @@ namespace NAC {
     AC_WT_MODEL_FIELD_IMPL(TFilesData, Offset)
 
     std::string TFilesData::GetTempPath() const {
-        const std::filesystem::path path(GetPath());
+        const stdfs::path path(GetPath());
         return (path.parent_path() / ("." + path.filename().string())).string();
     }
 
